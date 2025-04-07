@@ -30,6 +30,7 @@ export default function HomeScreen() {
         },
       });
       setResults(response.data);
+      console.log('Fetched Results:', response.data); // Log the results
     } catch (error) {
       console.error('Error fetching data:', error);
       Alert.alert('Error', 'Failed to fetch data. Please try again later.');
@@ -83,18 +84,20 @@ export default function HomeScreen() {
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <ScrollView style={styles.resultsContainer}>
-          {results.length > 0 ? (
-            results.map((item, index) => (
-              <View key={item.id || index} style={styles.resultItem}>
-                <Text style={styles.partName}>{item.name}</Text>
-                <Text style={styles.partDetails}>Part Number: {item.partNumber}</Text>
-                <Text style={styles.partPrice}>Price: {item.price}</Text>
-              </View>
-            ))
-          ) : (
-            <Text>No results found</Text>
-          )}
-        </ScrollView>
+        {results.length > 0 ? (
+          results.map((item, index) => (
+            <View key={item.id || index} style={styles.resultCard}>
+              <Text style={styles.partName}>{item.descripcion}</Text>
+              <Text style={styles.partDetails}>Part Number: {item.parte}</Text>
+              <Text style={styles.partPrice}>Año vehiculo: {item.ano}</Text>
+              <Text style={styles.partPrice}>Taller: {item.nombreEmpresa}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.noResultsText}>No results found</Text>
+        )}
+      </ScrollView>
+
       )}
     </ParallaxScrollView>
   );
