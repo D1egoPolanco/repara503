@@ -1,41 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, Modal, Button, Linking } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, Modal, Button, Linking, Image } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 
-const catalog = {
-  ACURA: ['INTEGRA', 'RSX', 'TSX'],
-  BMW: ['128I', '135I', '320I', '325', '325CI', '325I', '325XI', '328', '328I', '328XI', '330CI', '335', '335I', '335XI', '528', '528I', '530I', 'X1', 'X3', 'X5'],
-  BUICK: ['ENCORE'],
-  CHEVROLET: ['AVEO', 'CAPTIVA', 'COBALT', 'COLORADO', 'CRUZE', 'EQUINOX', 'OPTRA', 'PRIZM', 'SMART', 'SONIC', 'SPARK', 'SUBURBAN', 'TRAVERSE', 'TRAX'],
-  DODGE: ['CALIBER', 'CARAVAN', 'DART', 'DURANGO', 'JOURNEY', 'NEON', 'RAM'],
-  FIAT: ['500', 'POP'],
-  FORD: ['ECOSPORT', 'EDGE', 'ESCAPE', 'EXPLORER', 'F150', 'FIESTA', 'FOCUS', 'FUSION', 'MUSTANG', 'RANGER', 'TRANSIT'],
-  HONDA: ['ACCORD', 'CIVIC', 'CIVIC SI', 'CRV', 'CRZ', 'ELEMENT', 'FIT', 'HRV', 'INSIGHT', 'ODYSSEY', 'PILOT', 'TSX'],
-  HYUNDAI: ['ACCENT', 'ELANTRA', 'ELANTRA GT', 'ELANTRA TOURING', 'GENESIS', 'KONA', 'SANTA FE', 'SONATA', 'TIBURON', 'TOURING', 'TUCSON', 'VELOSTER', 'VELOSTER TURBO'],
-  ISUZU: ['CONVENTION'],
-  JEEP: ['CHEROKEE', 'COMPASS', 'LIBERTY', 'PATRIOT', 'RENEGADE', 'WRANGLER'],
-  KAWASAKI: ['EX300B', 'EX650'],
-  KIA: ['BONGO', 'CADENZA', 'CARNIVAL', 'FORTE', 'OPTIMA', 'RIO', 'RIO 5', 'RONDO', 'SEDONA', 'SORENTO', 'SOUL', 'SPECTRA', 'SPECTRA 5', 'SPORTAGE'],
-  KTM: ['300'],
-  LEXUS: ['GX 460', 'IS250'],
-  MAZDA: ['2', '3', '3 SPORT', '3 TOURING', '5', '5 SPORT', '6', '6 GRAN TOURING', '6 TOURING', 'CX3', 'CX3 TOURING', 'CX5', 'CX5 TOURING', 'CX7', 'CX9', 'MPV', 'MX5 MIATA', 'PROTEGE', 'PROTEGE 5', 'RX8', 'TRIBUTE'],
-  MERCURY: ['MARINER'],
-  MINI: ['COOPER'],
-  MITSUBISHI: ['ECLIPSE', 'ENDEAVOR', 'GALAN', 'GALANT', 'LANCER', 'LANCER RALLY', 'MIRAGE', 'MONTERO', 'OUTLANDER', 'RALLY'],
-  NISSAN: ['350Z', '370Z', 'ALTIMA', 'CUBE', 'FRONTIER', 'HARDBODY', 'INFINITI', 'JUKE', 'KICKS', 'MURANO', 'NV', 'PATHFINDER', 'QUEST', 'ROGUE', 'ROGUE KROME', 'SCA', 'SENTRA', 'SENTRA SR', 'VERSA', 'VERSA NOTE', 'XTERRA'],
-  PONTIAC: ['VIBE'],
-  SCION: ['FRS', 'IA', 'IM', 'IQ', 'TC', 'XA', 'XB', 'XD'],
-  SMART: ['FORTWO'],
-  SSANGYONG: ['ACTYON SPORT', 'REXTON'],
-  SUBARU: ['BRZ', 'FORESTER', 'FRZ', 'IMPREZA', 'SCION', 'SCION FRS', 'WRX'],
-  SUZUKI: ['AERIO', 'CONVEN', 'FORENZA', 'GRAND VITARA', 'KIZASHI', 'SX4', 'VITARA', 'XL7'],
-  TOYOTA: ['CAMRY', 'CELICA', 'CHR', 'COROLLA', 'COROLLA S', 'ECHO', 'HIGLANDER', 'HILUX', 'LAND CRUISER', 'LEXUS', 'MATRIX', 'PRIUS', 'RAV4', 'RUNNER', 'SIENNA', 'TACOMA', 'TERCEL', 'VENSA', 'YARIS', 'YARIS IA'],
-  VOLKSWAGEN: ['GOLF', 'GTI', 'JETTA', 'PASSAT', 'TIGUAN'],
-  VOLVO: ['S40', 'S60', 'XC90'],
-};
-
 export default function Search() {
+  const [catalog, setCatalog] = useState({}); // Estado para el catálogo dinámico
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [part, setPart] = useState('');
@@ -43,6 +12,33 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [selectedResult, setSelectedResult] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  // Función para obtener el catálogo desde la API
+  const fetchCatalog = async () => {
+    try {
+      const response = await axios.get('https://servicio.repara503.site/consulta-partes-API/api/usados/marcasymodelos');
+      const data = response.data;
+
+      // Transformar los datos en un formato adecuado para el Picker
+      const transformedCatalog = data.reduce((acc, item) => {
+        if (!acc[item.marca]) {
+          acc[item.marca] = [];
+        }
+        acc[item.marca].push(item.modelo);
+        return acc;
+      }, {});
+
+      setCatalog(transformedCatalog);
+    } catch (error) {
+      console.error('Error fetching catalog:', error);
+      Alert.alert('Error', 'No se pudo obtener el catálogo. Intente nuevamente más tarde.');
+    }
+  };
+
+  // Llamar a la API al montar el componente
+  useEffect(() => {
+    fetchCatalog();
+  }, []);
 
   const fetchData = async () => {
     if (!selectedBrand || !selectedModel || !part) {
@@ -116,7 +112,7 @@ export default function Search() {
             style={styles.picker}
           >
             <Picker.Item label="Seleccione un modelo" value="" />
-            {catalog[selectedBrand].map((model) => (
+            {catalog[selectedBrand]?.map((model) => (
               <Picker.Item key={model} label={model} value={model} />
             ))}
           </Picker>
@@ -151,6 +147,12 @@ export default function Search() {
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => handleSelectResult(item)}>
               <View style={styles.resultCard}>
+                {/* Imagen genérica */}
+                <Image
+                  source={require('../../assets/images/imagen_repuestos.jpg')} // Ruta de la imagen
+                  style={styles.resultImage}
+                  resizeMode="contain"
+                />
                 <Text style={styles.resultText}>
                   <Text style={styles.partName}>Parte:</Text> {item.descripcion}
                 </Text>
@@ -180,6 +182,12 @@ export default function Search() {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
+              {/* Imagen genérica en la modal */}
+              <Image
+                source={require('../../assets/images/imagen_repuestos.jpg')} // Ruta de la imagen
+                style={styles.modalImage}
+                resizeMode="contain"
+              />
               <Text style={styles.modalTitle}>Detalles de la Parte</Text>
               <Text style={styles.modalText}>
                 <Text style={styles.boldText}>Parte:</Text> {selectedResult.descripcion}
@@ -192,6 +200,19 @@ export default function Search() {
               </Text>
               <Text style={styles.modalText}>
                 <Text style={styles.boldText}>Empresa:</Text> {selectedResult.nombreEmpresa}
+              </Text>
+              {/* Nuevos campos */}
+              <Text style={styles.modalText}>
+                <Text style={styles.boldText}>Venta:</Text> {selectedResult.venta || 'No disponible'}
+              </Text>
+              <Text style={styles.modalText}>
+                <Text style={styles.boldText}>Código de Inventario:</Text> {selectedResult.codigo_inventario}
+              </Text>
+              <Text style={styles.modalText}>
+                <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias}
+              </Text>
+              <Text style={styles.modalText}>
+                <Text style={styles.boldText}>Tipo:</Text> {selectedResult.tipo}
               </Text>
               <TouchableOpacity
                 style={styles.contactButton}
@@ -255,6 +276,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
+  resultImage: {
+    width: '100%',
+    height: 150,
+    marginBottom: 10,
+    borderRadius: 8,
+  },
   resultText: {
     fontSize: 14,
     color: '#333',
@@ -301,5 +328,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalImage: {
+    width: '100%',
+    height: 200,
+    marginBottom: 20,
+    borderRadius: 8,
   },
 });

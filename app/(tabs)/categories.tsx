@@ -14,7 +14,7 @@ import {
 } from 'lucide-react-native';
 
 const categories = [
-  { id: 1, name: 'Motor', icon: Engine, color: '#4CAF50' },
+  { id: 1, name: 'Motor', icon: Suspension, color: '#4CAF50' },
   { id: 2, name: 'Aire Acondicionado', icon: AirConditioning, color: '#03A9F4' },
   { id: 3, name: 'Alternador/Encendido', icon: Alternator, color: '#FFC107' },
   { id: 4, name: 'Frenos', icon: Disc, color: '#F44336' },
