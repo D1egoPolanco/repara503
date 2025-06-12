@@ -271,9 +271,13 @@ export default function Search() {
                   <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias || 'No disponible'}
                 </Text>
                 {
-                  selectedResult.foto && selectedResult.foto.trim() !== '' ? (
+                  selectedResult.foto &&
+  typeof selectedResult.foto === 'string' &&
+  selectedResult.foto.trim() !== '' &&
+  selectedResult.foto.trim().toLowerCase() !== 'null' &&
+  selectedResult.foto.trim().toLowerCase() !== 'undefined' ? (
                     <Image
-                      source={{ uri: `data:image/png;base64,${selectedResult.foto.replace(/\s/g, '')}` }}
+                      source={{ uri: `data:image/jpeg;base64,${selectedResult.foto.replace(/\s/g, '')}` }}
                       style={styles.modalImage}
                       resizeMode="contain"
                     />

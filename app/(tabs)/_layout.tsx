@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Car, Search, Wrench } from 'lucide-react-native';
+import { MaterialCommunityIcons, Feather, FontAwesome5 } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
@@ -24,7 +24,7 @@ export default function TabLayout() {
         options={{
           title: 'Categorías',
           tabBarIcon: ({ color, size }) => (
-            <Car size={size} color={color} />
+            <MaterialCommunityIcons name="car" size={size} color={color} />
           ),
         }}
       />
@@ -33,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Buscar',
           tabBarIcon: ({ color, size }) => (
-            <Search size={size} color={color} />
+            <Feather name="search" size={size} color={color} />
           ),
         }}
       />
@@ -42,7 +42,7 @@ export default function TabLayout() {
         options={{
           title: 'Talleres',
           tabBarIcon: ({ color, size }) => (
-            <Wrench size={size} color={color} />
+            <FontAwesome5 name="tools" size={size} color={color} />
           ),
         }}
       />

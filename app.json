@@ -2,15 +2,19 @@
   "expo": {
     "name": "Repara503",
     "slug": "repara503",
-    "version": "1.0.0",
-    "sdkVersion": "53.0.0",       // ← ESTA LÍNEA ES CLAVE
+    "version": "1.0.0",                        // ← REQUERIDO por EAS (versión de app)
+    "sdkVersion": "53.0.0",
     "orientation": "portrait",
-    "icon": "./assets/repara503.jpeg",
+   "icon": "./assets/images/repara503.jpeg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
+    },
+    "android": {
+      "package": "com.diepoz.repara503",
+      "versionCode": 1                        // ← REQUERIDO por EAS (incrementar con cada build)
     },
     "web": {
       "bundler": "metro",
@@ -30,9 +34,6 @@
       "eas": {
         "projectId": "399c717e-bd0f-4374-b124-508bfa4500e1"
       }
-    },
-    "android": {
-      "package": "com.diepoz.repara503"
     }
   }
 }
