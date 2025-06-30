@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Platform } from 'react-native';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -23,7 +24,9 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
       </Stack>
-      <StatusBar style="light" />
+
+      {/* ✅ Solo mostrar StatusBar en dispositivos móviles */}
+      {Platform.OS !== 'web' && <StatusBar style="light" backgroundColor="#000" />}
     </>
   );
 }

@@ -68,8 +68,8 @@ export default function Search() {
     try {
       const response = await axios.get(`https://servicio.repara503.site/consulta-partes-API/api/usados/${item.id}`);
       const detalle = response.data;
-      console.log('Detalle recibido:', detalle); // <-- Agrega esto
-      setSelectedResult({ ...item, foto: detalle.foto, datosEmpresa: detalle.datosEmpresa });
+      console.log('Detalle recibido de la API:', detalle);
+      setSelectedResult({ ...item, ...detalle });
       setModalVisible(true);
     } catch (error) {
       setSelectedResult(item);
@@ -77,21 +77,7 @@ export default function Search() {
     }
   };
 
-  const handleContact = (empresa) => {
-    let phoneNumber = '';
-    if (empresa === 'Pana Autoparts') {
-      phoneNumber = 'tel:22577777';
-    } else if (empresa === 'Rivas Autoparts') {
-      phoneNumber = 'tel:22736000';
-    } else {
-      Alert.alert('Contacto', 'Empresa no reconocida.');
-      return;
-    }
 
-    Linking.openURL(phoneNumber).catch((err) =>
-      Alert.alert('Error', 'No se pudo abrir el marcador telefónico.')
-    );
-  };
 
   const groupResultsByCompany = (results) => {
     return results.reduce((acc, item) => {
@@ -116,19 +102,29 @@ export default function Search() {
     <View style={styles.container}>
       {/* Selector de Marca */}
       <Text style={styles.label}>Seleccione una Marca:</Text>
-      <Picker
-        selectedValue={selectedBrand}
-        onValueChange={(itemValue) => {
-          setSelectedBrand(itemValue);
-          setSelectedModel('');
-        }}
-        style={styles.picker}
-      >
-        <Picker.Item label="Seleccione una marca" value="" />
-        {Object.keys(catalog).map((brand) => (
-          <Picker.Item key={brand} label={brand} value={brand} />
-        ))}
-      </Picker>
+      <View style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, marginBottom: 16, backgroundColor: '#fff' }}>
+        <Picker
+          selectedValue={selectedBrand}
+          onValueChange={(itemValue) => setSelectedBrand(itemValue)}
+          style={{
+            backgroundColor: '#444', // gris oscuro
+            color: '#fff',            // letras blancas
+            borderRadius: 8,
+            marginBottom: 10,
+          }}
+          dropdownIconColor="#fff"    // icono blanco
+        >
+          <Picker.Item label="Seleccione una marca" value="" color="#888" />
+          {Object.keys(catalog).map((brand) => (
+            <Picker.Item
+              key={brand}
+              label={brand}
+              value={brand}
+              color="#fff" // letras blancas en cada opción
+            />
+          ))}
+        </Picker>
+      </View>
 
       {/* Selector de Modelo */}
       {selectedBrand ? (
@@ -137,11 +133,21 @@ export default function Search() {
           <Picker
             selectedValue={selectedModel}
             onValueChange={(itemValue) => setSelectedModel(itemValue)}
-            style={styles.picker}
+            style={{
+              backgroundColor: '#444', // gris oscuro
+              color: '#fff',           // letras blancas
+              borderRadius: 8,
+              marginBottom: 10,
+            }}
+            dropdownIconColor="#fff"   // icono blanco
           >
-            <Picker.Item label="Seleccione un modelo" value="" />
             {catalog[selectedBrand]?.map((model) => (
-              <Picker.Item key={model} label={model} value={model} />
+              <Picker.Item
+                key={model}
+                label={model}
+                value={model}
+                color="#fff" // letras blancas en cada opción
+              />
             ))}
           </Picker>
         </>
@@ -152,8 +158,17 @@ export default function Search() {
         <>
           <Text style={styles.label}>Ingrese la Parte a Buscar:</Text>
           <TextInput
-            style={styles.input}
-            placeholder="Ejemplo: Filtro de aire"
+            style={{
+              backgroundColor: '#444', // gris oscuro
+              color: '#fff',           // letras blancas
+              borderRadius: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              marginBottom: 10,
+              fontSize: 16,
+            }}
+            placeholder="Ejemplo: Alternador"
+            placeholderTextColor="#ccc"
             value={part}
             onChangeText={setPart}
           />
@@ -241,7 +256,7 @@ export default function Search() {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
+              <ScrollView contentContainerStyle={{ alignItems: 'center', paddingBottom: 32 }}>
                 <Text style={styles.modalTitle}>Detalles de la Parte</Text>
                 <Text style={styles.modalText}>
                   <Text style={styles.boldText}>Empresa:</Text> {selectedResult.nombreEmpresa}
@@ -256,28 +271,24 @@ export default function Search() {
                   <Text style={styles.boldText}>Año:</Text> {selectedResult.ano}
                 </Text>
                 <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Cantidad:</Text> {selectedResult.cantidad || 'No disponible'}
+                  <Text style={styles.boldText}>Cantidad:</Text> {selectedResult.cantidad ? selectedResult.cantidad : 0}
                 </Text>
                 <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Venta:</Text> {selectedResult.venta || 'No disponible'}
+                  <Text style={styles.boldText}>Venta:</Text> {selectedResult.venta ? selectedResult.venta : 0}
                 </Text>
                 <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Descripción:</Text> {selectedResult.descripcion || 'No disponible'}
+                  <Text style={styles.boldText}>Descripción:</Text> {selectedResult.descripcion ? selectedResult.descripcion : ''}
                 </Text>
                 <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Observaciones:</Text> {selectedResult.observaciones || 'No disponible'}
+                  <Text style={styles.boldText}>Observaciones:</Text> {selectedResult.observaciones ? selectedResult.observaciones : ''}
                 </Text>
                 <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias || 'No disponible'}
+                  <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias ? selectedResult.equivalencias : ''}
                 </Text>
                 {
-                  selectedResult.foto &&
-  typeof selectedResult.foto === 'string' &&
-  selectedResult.foto.trim() !== '' &&
-  selectedResult.foto.trim().toLowerCase() !== 'null' &&
-  selectedResult.foto.trim().toLowerCase() !== 'undefined' ? (
+                  selectedResult.foto === 'S' ? (
                     <Image
-                      source={{ uri: `data:image/jpeg;base64,${selectedResult.foto.replace(/\s/g, '')}` }}
+                      source={require('../../assets/images/imagen_repuestos.jpg')}
                       style={styles.modalImage}
                       resizeMode="contain"
                     />
@@ -290,69 +301,70 @@ export default function Search() {
                   )
                 }
 
-                {/* Contacto por defecto (hardcodeado) */}
-                <View
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: 10,
-                    padding: 16,
-                    marginVertical: 10,
-                    alignSelf: 'stretch',
-                  }}
-                >
-                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 8 }}>
-                    {selectedResult.nombreEmpresa}
-                  </Text>
-                  {selectedResult.nombreEmpresa === 'Pana Autoparts' ? (
-                    <>
+                {/* Datos de la empresa (nueva sección) */}
+                {selectedResult.datosEmpresa ? (
+                  <View
+                    style={{
+                      backgroundColor: 'white',
+                      borderRadius: 10,
+                      padding: 16,
+                      marginVertical: 10,
+                      alignSelf: 'stretch',
+                    }}
+                  >
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 8 }}>
+                      {selectedResult.datosEmpresa.nombreEmpresa || selectedResult.nombreEmpresa}
+                    </Text>
+                    {/* Dirección */}
+                    {selectedResult.datosEmpresa.direccion ? (
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                         <Text style={{ color: 'red', fontSize: 18, marginRight: 6 }}>📍</Text>
-                        <TouchableOpacity
-                          onPress={() =>
-                            Linking.openURL(
-                              'https://www.google.com/maps/search/?api=1&query=17+Av.+Sur,+San+Salvador,+El+Salvador'
-                            )
-                          }
-                        >
-                          <Text style={{ fontSize: 16, color: '#007AFF', textDecorationLine: 'underline' }}>
-                            17 Av. Sur, San Salvador, El Salvador
-                          </Text>
-                        </TouchableOpacity>
+                        {selectedResult.datosEmpresa.mapa ? (
+                          <TouchableOpacity
+                            onPress={() => Linking.openURL(selectedResult.datosEmpresa.mapa)}
+                          >
+                            <Text style={{ fontSize: 16, color: '#007AFF', textDecorationLine: 'underline' }}>
+                              {selectedResult.datosEmpresa.direccion}
+                            </Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <Text style={{ fontSize: 16 }}>{selectedResult.datosEmpresa.direccion}</Text>
+                        )}
                       </View>
+                    ) : null}
+                    {/* Teléfonos */}
+                    {selectedResult.datosEmpresa.telefono ? (
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                         <Text style={{ color: 'green', fontSize: 18, marginRight: 6 }}>📞</Text>
-                        <Text style={{ fontSize: 16 }}>
-                          +503 2257 7777
+                        <Text style={{ fontSize: 16 }}>{selectedResult.datosEmpresa.telefono}</Text>
+                      </View>
+                    ) : null}
+                    {selectedResult.datosEmpresa.wa1 ? (
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}
+                        onPress={() => Linking.openURL(selectedResult.datosEmpresa.wa1)}
+                      >
+                        <Text style={{ fontSize: 18, marginRight: 6 }}>🟢</Text>
+                        <Text style={{ fontSize: 16, color: '#25D366', textDecorationLine: 'underline' }}>
+                          {selectedResult.datosEmpresa.wa1.replace('https://wa.me/', '+')}
                         </Text>
-                      </View>
-                    </>
-                  ) : selectedResult.nombreEmpresa === 'Rivas Autoparts' ? (
-                    <>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                        <Text style={{ color: 'red', fontSize: 18, marginRight: 6 }}>📍</Text>
-                        <TouchableOpacity
-                          onPress={() =>
-                            Linking.openURL(
-                              'https://www.google.com/maps/search/?api=1&query=45A+Avenida+Sur,+San+Salvador,+El+Salvador'
-                            )
-                          }
-                        >
-                          <Text style={{ fontSize: 16, color: '#007AFF', textDecorationLine: 'underline' }}>
-                            45A Avenida Sur, San Salvador, El Salvador
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                        <Text style={{ color: 'green', fontSize: 18, marginRight: 6 }}>📞</Text>
-                        <Text style={{ fontSize: 16 }}>
-                          +503 2279 0537
+                      </TouchableOpacity>
+                    ) : null}
+                    {selectedResult.datosEmpresa.wa2 ? (
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}
+                        onPress={() => Linking.openURL(selectedResult.datosEmpresa.wa2)}
+                      >
+                        <Text style={{ fontSize: 18, marginRight: 6 }}>🟢</Text>
+                        <Text style={{ fontSize: 16, color: '#25D366', textDecorationLine: 'underline' }}>
+                          {selectedResult.datosEmpresa.wa2.replace('https://wa.me/', '+')}
                         </Text>
-                      </View>
-                    </>
-                  ) : (
-                    <Text style={{ color: '#777' }}>No hay información de contacto disponible.</Text>
-                  )}
-                </View>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                ) : (
+                  <Text style={{ color: '#777', marginTop: 10 }}>No hay información de contacto disponible.</Text>
+                )}
 
                 {/* Botones de acción */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, width: '100%' }}>
@@ -370,17 +382,20 @@ export default function Search() {
                     <Text style={{ color: '#333', fontWeight: 'bold', textAlign: 'center' }}>Regresar</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={{
-                      backgroundColor: '#FF0000', // Rojo fuerte
-                      paddingVertical: 10,
-                      paddingHorizontal: 20,
-                      borderRadius: 8,
-                      marginLeft: 8,
-                      flex: 1,
+                    style={styles.contactButton}
+                    onPress={() => {
+                      if (
+                        selectedResult &&
+                        selectedResult.datosEmpresa &&
+                        selectedResult.datosEmpresa.telefono
+                      ) {
+                        Linking.openURL(`tel:${selectedResult.datosEmpresa.telefono}`);
+                      } else {
+                        Alert.alert('Error', 'No hay número de teléfono disponible.');
+                      }
                     }}
-                    onPress={() => handleContact(selectedResult.nombreEmpresa)}
                   >
-                    <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>Contactar empresa</Text>
+                    <Text style={styles.contactButtonText}>Contactar empresa</Text>
                   </TouchableOpacity>
                 </View>
               </ScrollView>
@@ -487,5 +502,18 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 10,
     marginVertical: 12,
+  },
+  contactButton: {
+    backgroundColor: '#FF0000', // Rojo fuerte
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginLeft: 8,
+    flex: 1,
+  },
+  contactButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
