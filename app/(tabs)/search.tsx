@@ -88,13 +88,7 @@ export default function Search() {
     }, {});
   };
 
-  const getCompanyImage = (empresa) => {
-    if (empresa === 'Pana Autoparts') return require('../../assets/images/pana2.jpeg');
-    if (empresa === 'Rivas Autoparts') return require('../../assets/images/Rivas.jpeg');
-    if (empresa === 'Repara503') return require('../../assets/images/repara503.jpeg');
-    return require('../../assets/images/imagen_repuestos.jpg');
-  };
-
+  
   // Agrupa los resultados por empresa
   const groupedResults = groupResultsByCompany(results);
 
@@ -219,31 +213,46 @@ export default function Search() {
           />
         </>
       ) : (
-        <FlatList
-          data={Object.keys(groupedResults)}
-          keyExtractor={(empresa) => empresa}
-          renderItem={({ item: empresa }) => (
-            <TouchableOpacity
-              style={styles.resultCard}
-              onPress={() => setSelectedCompany(empresa)}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Image
-                  source={getCompanyImage(empresa)}
-                  style={{ width: 60, height: 60, borderRadius: 30, marginRight: 16 }}
-                  resizeMode="cover"
-                />
-                <View>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{empresa}</Text>
-                  <Text style={{ fontSize: 16, color: '#555' }}>
-                    {groupedResults[empresa].length} resultado(s)
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+       <FlatList
+  data={Object.keys(groupedResults)}
+  keyExtractor={(empresa) => empresa}
+  renderItem={({ item: empresa }) => {
+    const representativeItem = groupedResults[empresa]?.[0];
+    const logoUrl = representativeItem?.datosEmpresa?.logourl;
+
+    return (
+      <TouchableOpacity
+        style={styles.resultCard}
+        onPress={() => setSelectedCompany(empresa)}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {logoUrl ? (
+            <Image
+              source={{ uri: logoUrl }}
+              style={{ width: 60, height: 60, borderRadius: 30, marginRight: 16 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Image
+              source={require('../../assets/images/imagen_repuestos.jpg')}
+              style={{ width: 60, height: 60, borderRadius: 30, marginRight: 16 }}
+              resizeMode="cover"
+            />
           )}
-          ListEmptyComponent={<Text style={styles.noResultsText}>No se encontraron resultados.</Text>}
-        />
+          <View>
+            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{empresa}</Text>
+            <Text style={{ fontSize: 16, color: '#555' }}>
+              {groupedResults[empresa].length} resultado(s)
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }}
+  ListEmptyComponent={<Text style={styles.noResultsText}>No se encontraron resultados.</Text>}
+/>
+
+
       )}
 
       {/* Modal para mostrar detalles del resultado seleccionado */}
