@@ -294,21 +294,19 @@ export default function Search() {
                 <Text style={styles.modalText}>
                   <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias ? selectedResult.equivalencias : ''}
                 </Text>
-                {
-                  selectedResult.foto === 'S' ? (
+                {selectedResult?.foto && selectedResult.foto.startsWith('http') ? (
                     <Image
-                      source={require('../../assets/images/imagen_repuestos.jpg')}
-                      style={styles.modalImage}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <Image
-                      source={require('../../assets/images/imagen_repuestos.jpg')}
-                      style={styles.modalImage}
-                      resizeMode="contain"
-                    />
-                  )
-                }
+                        source={{ uri: selectedResult.foto }}
+                            style={styles.modalImage}
+                                resizeMode="contain"
+                                  />
+                                  ) : (
+                                      <Image
+                                          source={require('../../assets/images/imagen_repuestos.jpg')}
+                                              style={styles.modalImage}
+                                                  resizeMode="contain"
+                                                    />
+                                                    )}
 
                 {/* Datos de la empresa (nueva sección) */}
                 {selectedResult.datosEmpresa ? (
