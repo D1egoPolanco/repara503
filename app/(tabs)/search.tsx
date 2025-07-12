@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, Modal, Button, Linking, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput, Modal, Button, Linking, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 
@@ -41,41 +41,61 @@ export default function Search() {
     fetchCatalog();
   }, []);
 
-  const fetchData = async () => {
-    if (!selectedBrand || !selectedModel || !part) {
-      Alert.alert('Error de Validación', 'Por favor, seleccione una marca, un modelo y escriba la parte a buscar.');
-      return;
-    }
+ const fetchData = async () => {
+  if (!selectedBrand || !selectedModel || !part.trim()) {
+    Alert.alert('Error de Validación', 'Por favor, seleccione una marca, un modelo y escriba la parte a buscar.');
+    return;
+  }
 
-    setLoading(true);
-    try {
-      const url = `https://servicio.repara503.site/consulta-partes-API/api/usados/parte?marca=${selectedBrand}&modelo=${selectedModel}&parte=${part}`;
-      const response = await axios.get(url, {
-        headers: {
-          Accept: 'application/json',
-        },
-      });
-      setResults(response.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      Alert.alert('Error', 'No se pudo obtener la información. Intente nuevamente más tarde.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const url = `https://servicio.repara503.site/consulta-partes-API/api/usados/parte?marca=${selectedBrand}&modelo=${selectedModel}&parte=${part.trim().toLowerCase()}`;
+    const response = await axios.get(url, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+    setResults(response.data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    Alert.alert('Error', 'No se pudo obtener la información. Intente nuevamente más tarde.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleSelectResult = async (item) => {
-    try {
-      const response = await axios.get(`https://servicio.repara503.site/consulta-partes-API/api/usados/${item.id}`);
-      const detalle = response.data;
-      console.log('Detalle recibido de la API:', detalle);
+const handleSelectResult = async (item) => {
+  const codInv = item.codigo_inventario;
+
+
+    
+   
+
+     try {
+    const url = `https://servicio.repara503.site/consulta-partes-API/api/usados/inventarios?empresa=${item.empresa}&vehiculo=${item.vehiculo}&categoria=${item.categoria}&parte=${item.parte}&cod_inventario=${item.codigo_inventario}`;
+    const response = await axios.get(url);
+    const detalle = response.data;
+
+    if (detalle && Object.keys(detalle).length > 0) {
       setSelectedResult({ ...item, ...detalle });
-      setModalVisible(true);
-    } catch (error) {
+    } else {
+      // El endpoint respondió pero no trajo detalles
+      Alert.alert('Sin detalles', 'Esta empresa no tiene información adicional disponible.');
       setSelectedResult(item);
-      setModalVisible(true);
     }
-  };
+  } catch (error) {
+    console.error('Error al obtener detalles:', error);
+    Alert.alert('Aviso', 'No se pudo obtener la información detallada de esta empresa, pero te mostraremos lo disponible.');
+    setSelectedResult(item);
+  } finally {
+    setModalVisible(true);
+  }
+    setModalVisible(true);
+ 
+  
+
+ 
+};
 
 
 
@@ -114,7 +134,7 @@ export default function Search() {
               key={brand}
               label={brand}
               value={brand}
-              color="#fff" // letras blancas en cada opción
+              color="#000" // letras blancas en cada opción
             />
           ))}
         </Picker>
@@ -128,8 +148,8 @@ export default function Search() {
             selectedValue={selectedModel}
             onValueChange={(itemValue) => setSelectedModel(itemValue)}
             style={{
-              backgroundColor: '#444', // gris oscuro
-              color: '#fff',           // letras blancas
+              backgroundColor: '#ccc', // gris oscuro
+              color: '#000',           // letras negras
               borderRadius: 8,
               marginBottom: 10,
             }}
@@ -140,7 +160,7 @@ export default function Search() {
                 key={model}
                 label={model}
                 value={model}
-                color="#fff" // letras blancas en cada opción
+                color="#ccc" // letras blancas en cada opción
               />
             ))}
           </Picker>
@@ -154,7 +174,7 @@ export default function Search() {
           <TextInput
             style={{
               backgroundColor: '#444', // gris oscuro
-              color: '#fff',           // letras blancas
+              color: '#ccc',           // letras blancas
               borderRadius: 8,
               paddingHorizontal: 12,
               paddingVertical: 8,
@@ -178,9 +198,13 @@ export default function Search() {
       </TouchableOpacity>
 
       {/* Resultados */}
-      {loading ? (
-        <Text style={styles.loadingText}>Cargando...</Text>
-      ) : selectedCompany ? (
+     {loading ? (
+  <View style={{ marginTop: 20, alignItems: 'center' }}>
+    <ActivityIndicator size="large" color="#FF0000" />
+    <Text style={styles.loadingText}>Cargando...</Text>
+  </View>
+) : selectedCompany ? (
+
         <>
           <TouchableOpacity
             style={[styles.resultCard, { backgroundColor: '#ffeaea', marginBottom: 16 }]}
@@ -218,7 +242,7 @@ export default function Search() {
   keyExtractor={(empresa) => empresa}
   renderItem={({ item: empresa }) => {
     const representativeItem = groupedResults[empresa]?.[0];
-    const logoUrl = representativeItem?.datosEmpresa?.logourl;
+    const logoUrl = representativeItem?.datosEmpresa?.logourl || null;
 
     return (
       <TouchableOpacity
@@ -295,18 +319,19 @@ export default function Search() {
                   <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias ? selectedResult.equivalencias : ''}
                 </Text>
                 {selectedResult?.foto && selectedResult.foto.startsWith('http') ? (
-                    <Image
-                        source={{ uri: selectedResult.foto }}
-                            style={styles.modalImage}
-                                resizeMode="contain"
-                                  />
-                                  ) : (
-                                      <Image
-                                          source={require('../../assets/images/imagen_repuestos.jpg')}
-                                              style={styles.modalImage}
-                                                  resizeMode="contain"
-                                                    />
-                                                    )}
+  <Image
+    source={{ uri: selectedResult.foto }}
+    style={styles.modalImage}
+    resizeMode="contain"
+  />
+) : (
+  <Image
+    source={require('../../assets/images/imagen_repuestos.jpg')}
+    style={styles.modalImage}
+    resizeMode="contain"
+  />
+)}
+
 
                 {/* Datos de la empresa (nueva sección) */}
                 {selectedResult.datosEmpresa ? (
