@@ -118,25 +118,20 @@ const handleSelectResult = async (item) => {
     <View style={styles.container}>
       {/* Selector de Marca */}
       <Text style={styles.label}>Seleccione una Marca:</Text>
-      <View style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, marginBottom: 16, backgroundColor: '#fff' }}>
+      <View style={styles.inputBox}>
         <Picker
           selectedValue={selectedBrand}
           onValueChange={(itemValue) => setSelectedBrand(itemValue)}
-          style={{
-            backgroundColor: '#444', // gris oscuro
-            color: '#fff',            // letras blancas
-            borderRadius: 8,
-            marginBottom: 10,
-          }}
-          dropdownIconColor="#fff"    // icono blanco
+          style={styles.pickerBox}
+          dropdownIconColor="#fff"
         >
-          <Picker.Item label="Seleccione una marca" value="" color="#888" />
+          <Picker.Item label="Seleccione una marca" value="" color="#fff" />
           {Object.keys(catalog).map((brand) => (
             <Picker.Item
               key={brand}
               label={brand}
               value={brand}
-              color="#000" // letras blancas en cada opción
+              color="#fff"
             />
           ))}
         </Picker>
@@ -146,26 +141,23 @@ const handleSelectResult = async (item) => {
       {selectedBrand ? (
         <>
           <Text style={styles.label}>Seleccione un Modelo:</Text>
-          <Picker
-            selectedValue={selectedModel}
-            onValueChange={(itemValue) => setSelectedModel(itemValue)}
-            style={{
-              backgroundColor: '#ccc', // gris oscuro
-              color: '#000',           // letras negras
-              borderRadius: 8,
-              marginBottom: 10,
-            }}
-            dropdownIconColor="#fff"   // icono blanco
-          >
-            {catalog[selectedBrand]?.map((model) => (
-              <Picker.Item
-                key={model}
-                label={model}
-                value={model}
-                color="#ccc" // letras blancas en cada opción
-              />
-            ))}
-          </Picker>
+          <View style={styles.inputBox}>
+            <Picker
+              selectedValue={selectedModel}
+              onValueChange={(itemValue) => setSelectedModel(itemValue)}
+              style={styles.pickerBox}
+              dropdownIconColor="#fff"
+            >
+              {catalog[selectedBrand]?.map((model) => (
+                <Picker.Item
+                  key={model}
+                  label={model}
+                  value={model}
+                  color="#fff"
+                />
+              ))}
+            </Picker>
+          </View>
         </>
       ) : null}
 
@@ -173,21 +165,15 @@ const handleSelectResult = async (item) => {
       {selectedModel ? (
         <>
           <Text style={styles.label}>Ingrese la Parte a Buscar:</Text>
-          <TextInput
-            style={{
-              backgroundColor: '#444', // gris oscuro
-              color: '#ccc',           // letras blancas
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              marginBottom: 10,
-              fontSize: 16,
-            }}
-            placeholder="Ejemplo: Alternador"
-            placeholderTextColor="#ccc"
-            value={part}
-            onChangeText={setPart}
-          />
+          <View style={styles.inputBox}>
+            <TextInput
+              style={styles.textInputBox}
+              placeholder="Ejemplo: Alternador"
+              placeholderTextColor="#fff"
+              value={part}
+              onChangeText={setPart}
+            />
+          </View>
         </>
       ) : null}
 
@@ -592,5 +578,27 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  inputBox: {
+    backgroundColor: '#444', // gris oscuro
+    borderRadius: 8,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  pickerBox: {
+    color: '#fff', // letras blancas
+    backgroundColor: '#444', // gris oscuro
+    borderRadius: 8,
+    height: 50,
+    width: '100%',
+  },
+  textInputBox: {
+    backgroundColor: '#444', // gris oscuro
+    color: '#fff',           // letras blancas
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
   },
 });
