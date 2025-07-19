@@ -13,6 +13,8 @@ export default function Search() {
   const [selectedResult, setSelectedResult] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+ const [imageModalVisible, setImageModalVisible] = useState(false);
+  
 
   // Función para obtener el catálogo desde la API
   const fetchCatalog = async () => {
@@ -65,21 +67,24 @@ export default function Search() {
 };
 
 const handleSelectResult = async (item) => {
-  const codInv = item.codigo_inventario;
+  setLoading(true); // ⏳ Spinner activado
 
+  try {
+    let detalle = {};
 
-    
-   
-
-     try {
-    const url = `https://servicio.repara503.site/consulta-partes-API/api/usados/inventarios?empresa=${item.empresa}&vehiculo=${item.vehiculo}&categoria=${item.categoria}&parte=${item.parte}&cod_inventario=${item.codigo_inventario}`;
-    const response = await axios.get(url);
-    const detalle = response.data;
+    if (item.id > 0) {
+      const response = await axios.get(`https://servicio.repara503.site/consulta-partes-API/api/usados/${item.id}`);
+      detalle = response.data;
+    } else {
+      const response = await axios.get(
+        `https://servicio.repara503.site/consulta-partes-API/api/usados/inventarios?empresa=${item.empresa}&vehiculo=${item.vehiculo}&categoria=${item.categoria}&parte=${item.parte}&cod_inventario=${item.codigo_inventario}`
+      );
+      detalle = response.data;
+    }
 
     if (detalle && Object.keys(detalle).length > 0) {
       setSelectedResult({ ...item, ...detalle });
     } else {
-      // El endpoint respondió pero no trajo detalles
       Alert.alert('Sin detalles', 'Esta empresa no tiene información adicional disponible.');
       setSelectedResult(item);
     }
@@ -88,14 +93,11 @@ const handleSelectResult = async (item) => {
     Alert.alert('Aviso', 'No se pudo obtener la información detallada de esta empresa, pero te mostraremos lo disponible.');
     setSelectedResult(item);
   } finally {
+    setLoading(false); // ✅ Spinner desactivado
     setModalVisible(true);
   }
-    setModalVisible(true);
- 
-  
-
- 
 };
+
 
 
 
@@ -278,162 +280,204 @@ const handleSelectResult = async (item) => {
 
 
       )}
+{loading && (
+  <View style={{ padding: 20 }}>
+    <ActivityIndicator size="large" color="#000" />
+  </View>
+)}
 
       {/* Modal para mostrar detalles del resultado seleccionado */}
       {selectedResult && (
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <ScrollView contentContainerStyle={{ alignItems: 'center', paddingBottom: 32 }}>
-                <Text style={styles.modalTitle}>Detalles de la Parte</Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Empresa:</Text> {selectedResult.nombreEmpresa}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Marca:</Text> {selectedResult.marca || 'No disponible'}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Modelo:</Text> {selectedResult.modelo}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Año:</Text> {selectedResult.ano}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Cantidad:</Text> {selectedResult.cantidad ? selectedResult.cantidad : 0}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Venta:</Text> {selectedResult.venta ? selectedResult.venta : 0}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Descripción:</Text> {selectedResult.descripcion ? selectedResult.descripcion : ''}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Observaciones:</Text> {selectedResult.observaciones ? selectedResult.observaciones : ''}
-                </Text>
-                <Text style={styles.modalText}>
-                  <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias ? selectedResult.equivalencias : ''}
-                </Text>
-                {selectedResult?.foto && selectedResult.foto.startsWith('http') ? (
-  <Image
-    source={{ uri: selectedResult.foto }}
-    style={styles.modalImage}
-    resizeMode="contain"
-  />
-) : (
-  <Image
-    source={require('../../assets/images/imagen_repuestos.jpg')}
-    style={styles.modalImage}
-    resizeMode="contain"
-  />
-)}
+      <Modal
+  visible={modalVisible}
+  animationType="slide"
+  transparent={true}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 32 }}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={true}
+      >
+        <Text style={styles.modalTitle}>Detalles de la Parte</Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Empresa:</Text> {selectedResult.nombreEmpresa}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Marca:</Text> {selectedResult.marca || 'No disponible'}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Modelo:</Text> {selectedResult.modelo}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Año:</Text> {selectedResult.ano}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Cantidad:</Text> {selectedResult.cantidad ?? 0}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Venta:</Text> {selectedResult.venta ?? 0}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Descripción:</Text> {selectedResult.descripcion ?? ''}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Observaciones:</Text> {selectedResult.observaciones ?? ''}
+        </Text>
+        <Text style={styles.modalText}>
+          <Text style={styles.boldText}>Equivalencias:</Text> {selectedResult.equivalencias ?? ''}
+        </Text>
 
+        {/* Imagen con opción de ampliar */}
+        <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+          {selectedResult?.foto && selectedResult.foto.startsWith('http') ? (
+            <Image
+              source={{ uri: selectedResult.foto }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <Image
+              source={require('../../assets/images/imagen_repuestos.jpg')}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          )}
+        </TouchableOpacity>
 
-                {/* Datos de la empresa (nueva sección) */}
-                {selectedResult.datosEmpresa ? (
-                  <View
-                    style={{
-                      backgroundColor: 'white',
-                      borderRadius: 10,
-                      padding: 16,
-                      marginVertical: 10,
-                      alignSelf: 'stretch',
-                    }}
-                  >
-                    <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 8 }}>
-                      {selectedResult.datosEmpresa.nombreEmpresa || selectedResult.nombreEmpresa}
+        {/* Datos de la empresa */}
+        {selectedResult.datosEmpresa ? (
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 10,
+            padding: 16,
+            marginVertical: 10,
+            alignSelf: 'stretch',
+          }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 8 }}>
+              {selectedResult.datosEmpresa.nombreEmpresa || selectedResult.nombreEmpresa}
+            </Text>
+
+            {/* Dirección */}
+            {selectedResult.datosEmpresa.direccion ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                <Text style={{ color: 'red', fontSize: 18, marginRight: 6 }}>📍</Text>
+                {selectedResult.datosEmpresa.mapa ? (
+                  <TouchableOpacity onPress={() => Linking.openURL(selectedResult.datosEmpresa.mapa)}>
+                    <Text style={{ fontSize: 16, color: '#007AFF', textDecorationLine: 'underline' }}>
+                      {selectedResult.datosEmpresa.direccion}
                     </Text>
-                    {/* Dirección */}
-                    {selectedResult.datosEmpresa.direccion ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                        <Text style={{ color: 'red', fontSize: 18, marginRight: 6 }}>📍</Text>
-                        {selectedResult.datosEmpresa.mapa ? (
-                          <TouchableOpacity
-                            onPress={() => Linking.openURL(selectedResult.datosEmpresa.mapa)}
-                          >
-                            <Text style={{ fontSize: 16, color: '#007AFF', textDecorationLine: 'underline' }}>
-                              {selectedResult.datosEmpresa.direccion}
-                            </Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <Text style={{ fontSize: 16 }}>{selectedResult.datosEmpresa.direccion}</Text>
-                        )}
-                      </View>
-                    ) : null}
-                    {/* Teléfonos */}
-                    {selectedResult.datosEmpresa.telefono ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                        <Text style={{ color: 'green', fontSize: 18, marginRight: 6 }}>📞</Text>
-                        <Text style={{ fontSize: 16 }}>{selectedResult.datosEmpresa.telefono}</Text>
-                      </View>
-                    ) : null}
-                    {selectedResult.datosEmpresa.wa1 ? (
-                      <TouchableOpacity
-                        style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}
-                        onPress={() => Linking.openURL(selectedResult.datosEmpresa.wa1)}
-                      >
-                        <Text style={{ fontSize: 18, marginRight: 6 }}>🟢</Text>
-                        <Text style={{ fontSize: 16, color: '#25D366', textDecorationLine: 'underline' }}>
-                          {selectedResult.datosEmpresa.wa1.replace('https://wa.me/', '+')}
-                        </Text>
-                      </TouchableOpacity>
-                    ) : null}
-                    {selectedResult.datosEmpresa.wa2 ? (
-                      <TouchableOpacity
-                        style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}
-                        onPress={() => Linking.openURL(selectedResult.datosEmpresa.wa2)}
-                      >
-                        <Text style={{ fontSize: 18, marginRight: 6 }}>🟢</Text>
-                        <Text style={{ fontSize: 16, color: '#25D366', textDecorationLine: 'underline' }}>
-                          {selectedResult.datosEmpresa.wa2.replace('https://wa.me/', '+')}
-                        </Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
+                  </TouchableOpacity>
                 ) : (
-                  <Text style={{ color: '#777', marginTop: 10 }}>No hay información de contacto disponible.</Text>
+                  <Text style={{ fontSize: 16 }}>{selectedResult.datosEmpresa.direccion}</Text>
                 )}
+              </View>
+            ) : null}
 
-                {/* Botones de acción */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, width: '100%' }}>
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: '#ccc',
-                      paddingVertical: 10,
-                      paddingHorizontal: 20,
-                      borderRadius: 8,
-                      marginRight: 8,
-                      flex: 1,
-                    }}
-                    onPress={() => setModalVisible(false)}
-                  >
-                    <Text style={{ color: '#333', fontWeight: 'bold', textAlign: 'center' }}>Regresar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.contactButton}
-                    onPress={() => {
-                      if (
-                        selectedResult &&
-                        selectedResult.datosEmpresa &&
-                        selectedResult.datosEmpresa.telefono
-                      ) {
-                        Linking.openURL(`tel:${selectedResult.datosEmpresa.telefono}`);
-                      } else {
-                        Alert.alert('Error', 'No hay número de teléfono disponible.');
-                      }
-                    }}
-                  >
-                    <Text style={styles.contactButtonText}>Contactar empresa</Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            </View>
+            {/* Teléfonos */}
+            {selectedResult.datosEmpresa.telefono ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                <Text style={{ color: 'green', fontSize: 18, marginRight: 6 }}>📞</Text>
+                <Text style={{ fontSize: 16 }}>{selectedResult.datosEmpresa.telefono}</Text>
+              </View>
+            ) : null}
+
+            {/* WhatsApp */}
+            {selectedResult.datosEmpresa.wa1 ? (
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}
+                onPress={() => Linking.openURL(selectedResult.datosEmpresa.wa1)}
+              >
+                <Text style={{ fontSize: 18, marginRight: 6 }}>🟢</Text>
+                <Text style={{ fontSize: 16, color: '#25D366', textDecorationLine: 'underline' }}>
+                  {selectedResult.datosEmpresa.wa1.replace('https://wa.me/', '+')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            {selectedResult.datosEmpresa.wa2 ? (
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}
+                onPress={() => Linking.openURL(selectedResult.datosEmpresa.wa2)}
+              >
+                <Text style={{ fontSize: 18, marginRight: 6 }}>🟢</Text>
+                <Text style={{ fontSize: 16, color: '#25D366', textDecorationLine: 'underline' }}>
+                  {selectedResult.datosEmpresa.wa2.replace('https://wa.me/', '+')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
-        </Modal>
+        ) : (
+          <Text style={{ color: '#777', marginTop: 10 }}>No hay información de contacto disponible.</Text>
+        )}
+
+        {/* Botones */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, width: '100%' }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#ccc',
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+              marginRight: 8,
+              flex: 1,
+            }}
+            onPress={() => setModalVisible(false)}
+          >
+            <Text style={{ color: '#333', fontWeight: 'bold', textAlign: 'center' }}>Regresar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.contactButton}
+            onPress={() => {
+              if (selectedResult?.datosEmpresa?.telefono) {
+                Linking.openURL(`tel:${selectedResult.datosEmpresa.telefono}`);
+              } else {
+                Alert.alert('Error', 'No hay número de teléfono disponible.');
+              }
+            }}
+          >
+            <Text style={styles.contactButtonText}>Contactar empresa</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
+  </View>
+
+  {/* Modal de imagen grande */}
+  <Modal
+    visible={imageModalVisible}
+    transparent={true}
+    animationType="fade"
+    onRequestClose={() => setImageModalVisible(false)}
+  >
+    <TouchableOpacity
+      style={{
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+      onPress={() => setImageModalVisible(false)}
+      activeOpacity={1}
+    >
+      <Image
+        source={
+          selectedResult?.foto && selectedResult.foto.startsWith('http')
+            ? { uri: selectedResult.foto }
+            : require('../../assets/images/imagen_repuestos.jpg')
+        }
+        style={{
+          width: '90%',
+          height: '80%',
+          resizeMode: 'contain',
+          borderRadius: 10,
+        }}
+      />
+    </TouchableOpacity>
+  </Modal>
+</Modal>
+
       )}
     </View>
   );
@@ -513,6 +557,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '90%',
     maxWidth: 500,
+    maxHeight: '90%', // <-- Agrega esto para limitar el alto y permitir scroll
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 16,
